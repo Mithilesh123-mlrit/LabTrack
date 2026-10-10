@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="labtrackApp" ng-csp>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookings – LabTrack</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body ng-controller="BookingController as vm" ng-cloak>
+
+  <!-- Simple header -->
+  <header class="navbar">
+    <div class="container page-header">
+      <a href="/" class="brand">
+        <span class="brand-icon">🔬</span>
+        <span class="brand-text">LabTrack</span>
+      </a>
+      <div class="page-header-links">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#equipment" class="nav-link">Equipment</a>
+        <div class="user-chip" ng-if="vm.auth.user">
+          <span class="user-name">{{ vm.auth.user.name }}</span>
+          <span class="role-badge">{{ vm.auth.user.role }}</span>
+          <button type="button" class="btn btn-outline btn-sm" ng-click="vm.logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="section" ng-if="vm.auth.user">
+    <div class="container">
+
+      <div class="section-head">
+        <h2>{{ vm.auth.canManage() ? "All Bookings" : "My Bookings" }}</h2>
+        <p ng-if="!vm.auth.canManage()">Request equipment for a time slot and track its approval.</p>
+        <p ng-if="vm.auth.canManage()">Review requests and manage every booking.
+          <strong>{{ vm.pendingCount() }}</strong> waiting for review.</p>
+      </div>
+
+      <!-- Booking form -->
+      <div class="form-panel" ng-if="vm.showForm">
+        <h3>Request a Booking</h3>
+
+        <form name="bookForm" novalidate ng-submit="vm.save(bookForm)">
+          <div class="form-grid">
+            <div class="form-group form-wide">
+              <label for="b-equipment">Equipment *</label>
+              <select id="b-equipment" name="equipment" ng-model="vm.form.equipment"
+                      ng-options="e._id as (e.equipmentId + ' - ' + e.name + ' (' + e.laboratory + ')') for e in vm.bookable()"
+                      required>
+                <option value="">Select equipment</option>
+              </select>
+              <small class="field-error" ng-if="vm.submitted && bookForm.equipment.$invalid">Choose equipment.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="b-start">Start *</label>
+              <input id="b-start" name="startTime" type="datetime-local" ng-model="vm.form.startTime" required>
+              <small class="field-error" ng-if="vm.submitted && bookForm.startTime.$invalid">Enter a start date and time.</small>
+            </div>
+
+            <div class="form-group">
+              <label for="b-end">End *</label>
+              <input id="b-end" name="endTime" type="datetime-local" ng-model="vm.form.endTime" required>
+              <small class="field-error" ng-if="vm.submitted && bookForm.endTime.$invalid">Enter an end date and time.</small>
+            </div>
+
+            <div class="form-group form-wide">
+              <label for="b-purpose">Purpose *</label>
+              <input id="b-purpose" name="purpose" type="text" maxlength="200"
+                     ng-model="vm.form.purpose" placeholder="e.g. Cell biology practical" required>
+              <small class="field-error" ng-if="vm.submitted && bookForm.purpose.$invalid">Purpose is required.</small>
+            </div>
+          </div>
+
+          <ul class="form-errors" ng-if="vm.formErrors.length">
+            <li ng-repeat="e in vm.formErrors track by $index">{{ e }}</li>
+          </ul>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-sm" ng-disabled="vm.saving">
+              {{ vm.saving ? "Sending..." : "Submit Request" }}
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" ng-click="vm.closeForm()">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Messages -->
+      <p class="table-message success" ng-if="vm.message">{{ vm.message }}</p>
+      <p class="table-message error" ng-if="vm.error">{{ vm.error }}</p>
+
+      <!-- Toolbar -->
+      <div class="table-toolbar">
+        <select ng-model="vm.statusFilter" aria-label="Filter by status">
+          <option value="">All statuses</option>
+          <option ng-repeat="s in vm.statuses" value="{{ s }}">{{ s }}</option>
+        </select>
+        <button type="button" class="btn btn-outline btn-sm" ng-click="vm.loadBookings()">Refresh</button>
+        <button type="button" class="btn btn-primary btn-sm" ng-click="vm.openForm()">+ New Booking</button>
+      </div>
+
+      <p class="table-message" ng-if="vm.loading">Loading bookings...</p>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Equipment</th>
+              <th ng-if="vm.auth.canManage()">Requested by</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Purpose</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="b in vm.bookings | filter:{status: vm.statusFilter} as filteredBookings track by b._id">
+              <td>
+                {{ b.equipment.name }}<br>
+                <small class="muted">{{ b.equipment.equipmentId }} · {{ b.equipment.laboratory }}</small>
+              </td>
+              <td ng-if="vm.auth.canManage()">{{ b.user.name }}</td>
+              <td>{{ b.startTime | date:'dd MMM yyyy, hh:mm a' }}</td>
+              <td>{{ b.endTime | date:'dd MMM yyyy, hh:mm a' }}</td>
+              <td>
+                {{ b.purpose }}
+                <small class="muted" ng-if="b.reviewNote"><br>Note: {{ b.reviewNote }}</small>
+              </td>
+              <td>
+                <span class="status" ng-class="vm.statusClass(b.status)">{{ b.status }}</span>
+                <small class="muted" ng-if="b.reviewedBy"><br>by {{ b.reviewedBy.name }}</small>
+              </td>
+              <td class="actions">
+                <button type="button" class="btn-link" ng-if="vm.auth.canManage() && b.status === 'Pending'" ng-click="vm.approve(b)">Approve</button>
+                <button type="button" class="btn-link danger" ng-if="vm.auth.canManage() && b.status === 'Pending'" ng-click="vm.reject(b)">Reject</button>
+                <button type="button" class="btn-link danger" ng-if="vm.canCancel(b)" ng-click="vm.cancel(b)">Cancel</button>
+              </td>
+            </tr>
+            <tr ng-if="!vm.loading && filteredBookings.length === 0">
+              <td colspan="7" class="table-message">No bookings found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="js/vendor/angular.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/services/authService.js"></script>
+  <script src="js/services/equipmentService.js"></script>
+  <script src="js/services/bookingService.js"></script>
+  <script src="js/controllers/bookingController.js"></script>
+</body>
+</html>

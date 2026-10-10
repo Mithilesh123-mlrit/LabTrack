@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="labtrackApp" ng-csp>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LabTrack - Laboratory Equipment & Resource Management System">
+  <title>LabTrack – Laboratory Equipment & Resource Management System</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ========== NAVBAR ========== -->
+  <header class="navbar" id="navbar" ng-controller="AuthController as nav">
+    <div class="container nav-inner">
+      <a href="#home" class="brand">
+        <span class="brand-icon">🔬</span>
+        <span class="brand-text">LabTrack</span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navMenu">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="nav-menu" id="navMenu">
+        <ul class="nav-links">
+          <li><a href="#home" class="nav-link">Home</a></li>
+          <li><a href="#stats" class="nav-link">Overview</a></li>
+          <li><a href="#features" class="nav-link">Features</a></li>
+          <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+          <li><a href="#equipment" class="nav-link">Equipment</a></li>
+          <li ng-if="nav.auth.user"><a href="bookings.html" class="nav-link">{{ nav.auth.canManage() ? "Bookings" : "My Bookings" }}</a></li>
+        </ul>
+        <div class="nav-auth">
+          <a href="login.html" class="btn btn-primary btn-sm" ng-if="nav.auth.ready && !nav.auth.user">Login</a>
+          <div class="user-chip" ng-if="nav.auth.user">
+            <span class="user-name">{{ nav.auth.user.name }}</span>
+            <span class="role-badge">{{ nav.auth.user.role }}</span>
+            <button type="button" class="btn btn-outline btn-sm" ng-click="nav.logout()">Logout</button>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ========== HERO ========== -->
+    <section class="hero" id="home">
+      <div class="container hero-inner">
+        <div class="hero-content">
+          <span class="badge-pill">College Laboratory Management</span>
+          <h1>Track every instrument.<br>Manage every <span class="highlight">lab resource</span>.</h1>
+          <p class="hero-text">
+            LabTrack helps students, lab assistants, and administrators manage
+            laboratory equipment, bookings, and equipment status in one simple dashboard.
+          </p>
+          <div class="hero-actions">
+            <a href="#equipment" class="btn btn-primary">Browse Equipment</a>
+            <a href="#how-it-works" class="btn btn-outline">See How It Works</a>
+          </div>
+        </div>
+
+        <!-- Live dashboard card (first 4 equipment items) -->
+        <div class="hero-card" ng-controller="HeroController as hc" ng-cloak>
+          <div class="hero-card-header">
+            <strong>Today in the Lab</strong>
+            <span class="live-dot">Live</span>
+          </div>
+          <ul class="mini-list">
+            <li ng-repeat="item in hc.items track by item._id">
+              <span>{{ item.name }} ({{ item.equipmentId }})</span>
+              <span class="status" ng-class="hc.statusClass(item.status)">{{ item.status }}</span>
+            </li>
+            <li ng-if="hc.loaded && hc.items.length === 0">
+              <span>No equipment added yet.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== STATS (live from MongoDB) ========== -->
+    <section class="stats" id="stats" ng-controller="StatsController as st" ng-cloak>
+      <div class="container stats-grid">
+        <div class="stat-card" data-reveal>
+          <div class="stat-icon blue">🧰</div>
+          <div>
+            <h3>{{ st.stats.loaded ? st.stats.data.total : "–" }}</h3>
+            <p>Total Equipment</p>
+          </div>
+        </div>
+        <div class="stat-card" data-reveal>
+          <div class="stat-icon green">✅</div>
+          <div>
+            <h3>{{ st.stats.loaded ? st.stats.data.available : "–" }}</h3>
+            <p>Available Now</p>
+          </div>
+        </div>
+        <div class="stat-card" data-reveal>
+          <div class="stat-icon amber">📅</div>
+          <div>
+            <h3>{{ st.stats.loaded ? st.stats.data.activeBookings : "–" }}</h3>
+            <p>Active Bookings</p>
+          </div>
+        </div>
+        <div class="stat-card" data-reveal>
+          <div class="stat-icon red">🛠️</div>
+          <div>
+            <h3>{{ st.stats.loaded ? st.stats.data.maintenance : "–" }}</h3>
+            <p>Under Maintenance</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== FEATURES ========== -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head">
+          <h2>Everything your lab needs</h2>
+          <p>Simple tools that replace paper registers and scattered spreadsheets.</p>
+        </div>
+
+        <div class="features-grid">
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon">📦</div>
+            <h3>Equipment Inventory</h3>
+            <p>Keep a complete record of every instrument, its location, and its condition.</p>
+          </article>
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon">🗓️</div>
+            <h3>Easy Booking</h3>
+            <p>Reserve equipment for a time slot and avoid clashes between lab sessions.</p>
+          </article>
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon">🔧</div>
+            <h3>Maintenance Status</h3>
+            <p>Mark equipment as under maintenance, and it is automatically blocked from booking.</p>
+          </article>
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon">👥</div>
+            <h3>Role-Based Access</h3>
+            <p>Separate views for students, lab assistants, and administrators.</p>
+          </article>
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon">📊</div>
+            <h3>Live Dashboard</h3>
+            <p>See total, available, booked, and under-maintenance equipment at a glance.</p>
+          </article>
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon">🔔</div>
+            <h3>Status Updates</h3>
+            <p>Know instantly whether an item is available, in use, or under maintenance.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== HOW IT WORKS ========== -->
+    <section class="section section-alt" id="how-it-works">
+      <div class="container">
+        <div class="section-head">
+          <h2>How LabTrack works</h2>
+          <p>Three simple steps from request to return.</p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step" data-reveal>
+            <span class="step-number">1</span>
+            <h3>Find Equipment</h3>
+            <p>Search the inventory and check real-time availability.</p>
+          </div>
+          <div class="step" data-reveal>
+            <span class="step-number">2</span>
+            <h3>Book a Slot</h3>
+            <p>Pick a date and time, then submit your booking request.</p>
+          </div>
+          <div class="step" data-reveal>
+            <span class="step-number">3</span>
+            <h3>Use &amp; Return</h3>
+            <p>Use the equipment, return it, and the record updates automatically.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== EQUIPMENT (AngularJS) ========== -->
+    <section class="section" id="equipment">
+      <div class="container" ng-controller="EquipmentController as vm" ng-cloak>
+        <div class="section-head">
+          <h2>Equipment</h2>
+          <p>Live data from MongoDB. Admins and lab assistants can add, edit, or delete items.</p>
+        </div>
+
+        <!-- Add / Edit form (only for admin and assistant) -->
+        <div class="form-panel" id="equipmentForm" ng-if="vm.showForm && vm.auth.canManage()">
+          <h3>{{ vm.editingId ? "Edit Equipment" : "Add Equipment" }}</h3>
+
+          <form name="equipForm" novalidate ng-submit="vm.save(equipForm)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="f-id">Equipment ID *</label>
+                <input id="f-id" name="equipmentId" type="text" ng-model="vm.form.equipmentId" placeholder="EQ-006" required>
+                <small class="field-error" ng-if="vm.submitted && equipForm.equipmentId.$invalid">Equipment ID is required.</small>
+              </div>
+
+              <div class="form-group">
+                <label for="f-name">Name *</label>
+                <input id="f-name" name="name" type="text" ng-model="vm.form.name" placeholder="Hot Air Oven" required>
+                <small class="field-error" ng-if="vm.submitted && equipForm.name.$invalid">Name is required.</small>
+              </div>
+
+              <div class="form-group">
+                <label for="f-category">Category</label>
+                <input id="f-category" name="category" type="text" ng-model="vm.form.category" placeholder="Heating">
+              </div>
+
+              <div class="form-group">
+                <label for="f-lab">Laboratory *</label>
+                <input id="f-lab" name="laboratory" type="text" ng-model="vm.form.laboratory" placeholder="Chemistry Lab" required>
+                <small class="field-error" ng-if="vm.submitted && equipForm.laboratory.$invalid">Laboratory is required.</small>
+              </div>
+
+              <div class="form-group">
+                <label for="f-status">Status</label>
+                <select id="f-status" name="status" ng-model="vm.form.status">
+                  <option ng-repeat="s in vm.statuses" value="{{ s }}" ng-selected="s === vm.form.status">{{ s }}</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="f-qty">Quantity</label>
+                <input id="f-qty" name="quantity" type="number" min="1" ng-model="vm.form.quantity" required>
+                <small class="field-error" ng-if="vm.submitted && equipForm.quantity.$invalid">Enter a quantity of 1 or more.</small>
+              </div>
+
+              <div class="form-group">
+                <label for="f-date">Purchase Date</label>
+                <input id="f-date" name="purchaseDate" type="date" ng-model="vm.form.purchaseDate">
+              </div>
+
+              <div class="form-group form-wide">
+                <label for="f-notes">Notes</label>
+                <textarea id="f-notes" name="notes" rows="2" ng-model="vm.form.notes"></textarea>
+              </div>
+            </div>
+
+            <!-- Errors returned by the server -->
+            <ul class="form-errors" ng-if="vm.formErrors.length">
+              <li ng-repeat="e in vm.formErrors track by $index">{{ e }}</li>
+            </ul>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-sm" ng-disabled="vm.saving">
+                {{ vm.saving ? "Saving..." : (vm.editingId ? "Update" : "Save") }}
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" ng-click="vm.closeForm()">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Success message -->
+        <p class="table-message success" ng-if="vm.message">{{ vm.message }}</p>
+
+        <!-- Search, filter, and buttons -->
+        <div class="table-toolbar">
+          <input type="text" ng-model="vm.search" placeholder="Search equipment..." aria-label="Search equipment">
+          <select ng-model="vm.statusFilter" aria-label="Filter by status">
+            <option value="">All statuses</option>
+            <option ng-repeat="s in vm.statuses" value="{{ s }}">{{ s }}</option>
+          </select>
+          <button type="button" class="btn btn-outline btn-sm" ng-click="vm.load()">Refresh</button>
+          <button type="button" class="btn btn-primary btn-sm" ng-if="vm.auth.canManage()" ng-click="vm.openAdd()">+ Add Equipment</button>
+        </div>
+
+        <p class="table-hint" ng-if="vm.auth.ready && !vm.auth.user">
+          <a href="login.html">Log in</a> to book equipment.
+        </p>
+        <p class="table-hint" ng-if="vm.auth.ready && vm.auth.user && !vm.auth.canManage()">
+          Use the Book link to request equipment. Only admins and lab assistants can add, edit, or delete items.
+        </p>
+
+        <!-- Loading and error messages -->
+        <p class="table-message" ng-if="vm.loading">Loading equipment...</p>
+        <p class="table-message error" ng-if="vm.error">{{ vm.error }}</p>
+
+        <div class="table-wrap" data-reveal>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Equipment</th>
+                <th>Category</th>
+                <th>Laboratory</th>
+                <th>Qty</th>
+                <th>Status</th>
+                <th ng-if="vm.auth.user">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="item in vm.items | filter:{status: vm.statusFilter} | filter:vm.search as filteredItems track by item._id">
+                <td>{{ item.equipmentId }}</td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.category }}</td>
+                <td>{{ item.laboratory }}</td>
+                <td>{{ item.quantity }}</td>
+                <td><span class="status" ng-class="vm.statusClass(item.status)">{{ item.status }}</span></td>
+                <td class="actions" ng-if="vm.auth.user">
+                  <a class="btn-link" ng-if="item.status !== 'Maintenance'" ng-href="bookings.html?equipment={{ item._id }}">Book</a>
+                  <button type="button" class="btn-link" ng-if="vm.auth.canManage()" ng-click="vm.openEdit(item)">Edit</button>
+                  <button type="button" class="btn-link danger" ng-if="vm.auth.canManage()" ng-click="vm.remove(item)">Delete</button>
+                </td>
+              </tr>
+              <tr ng-if="!vm.loading && !vm.error && filteredItems.length === 0">
+                <td colspan="7" class="table-message">No equipment found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="table-count" ng-if="!vm.loading && !vm.error">
+          Showing {{ filteredItems.length }} of {{ vm.items.length }} items
+        </p>
+      </div>
+    </section>
+
+    <!-- ========== CALL TO ACTION ========== -->
+    <section class="cta">
+      <div class="container cta-inner">
+        <h2>Ready to organize your laboratory?</h2>
+        <p>Log in to start managing equipment and bookings.</p>
+        <a href="login.html" class="btn btn-light">Get Started</a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div>
+        <a href="#home" class="brand brand-light">
+          <span class="brand-icon">🔬</span>
+          <span class="brand-text">LabTrack</span>
+        </a>
+        <p class="footer-text">Laboratory Equipment &amp; Resource Management System</p>
+      </div>
+      <p class="footer-copy">&copy; <span id="year"></span> LabTrack. College Web Programming Project.</p>
+    </div>
+  </footer>
+
+  <script src="js/vendor/angular.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/services/authService.js"></script>
+  <script src="js/services/equipmentService.js"></script>
+  <script src="js/services/statsService.js"></script>
+  <script src="js/controllers/authController.js"></script>
+  <script src="js/controllers/equipmentController.js"></script>
+  <script src="js/controllers/heroController.js"></script>
+  <script src="js/controllers/statsController.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

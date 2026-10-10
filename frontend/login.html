@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="labtrackApp" ng-csp>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login – LabTrack</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-page">
+
+  <main class="auth-card" ng-controller="LoginController as vm" ng-cloak>
+    <a href="/" class="brand auth-brand">
+      <span class="brand-icon">🔬</span>
+      <span class="brand-text">LabTrack</span>
+    </a>
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button type="button" ng-class="{active: vm.mode === 'login'}" ng-click="vm.setMode('login')">Login</button>
+      <button type="button" ng-class="{active: vm.mode === 'register'}" ng-click="vm.setMode('register')">Register</button>
+    </div>
+
+    <form name="authForm" novalidate ng-submit="vm.submit(authForm)">
+
+      <div class="form-group" ng-if="vm.mode === 'register'">
+        <label for="a-name">Full name</label>
+        <input id="a-name" name="name" type="text" ng-model="vm.form.name" autocomplete="name" required>
+        <small class="field-error" ng-if="vm.submitted && authForm.name.$invalid">Name is required.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="a-email">Email</label>
+        <input id="a-email" name="email" type="email" ng-model="vm.form.email" autocomplete="username" required>
+        <small class="field-error" ng-if="vm.submitted && authForm.email.$invalid">Enter a valid email address.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="a-password">Password</label>
+        <input id="a-password" name="password" type="password" ng-model="vm.form.password"
+               autocomplete="{{ vm.mode === 'register' ? 'new-password' : 'current-password' }}"
+               ng-minlength="vm.mode === 'register' ? 6 : 1" required>
+        <small class="field-error" ng-if="vm.submitted && authForm.password.$invalid">
+          {{ vm.mode === 'register' ? 'Password must be at least 6 characters.' : 'Password is required.' }}
+        </small>
+      </div>
+
+      <!-- Errors returned by the server -->
+      <ul class="form-errors" ng-if="vm.errors.length">
+        <li ng-repeat="e in vm.errors track by $index">{{ e }}</li>
+      </ul>
+
+      <button type="submit" class="btn btn-primary auth-submit" ng-disabled="vm.loading">
+        {{ vm.loading ? "Please wait..." : (vm.mode === "login" ? "Login" : "Create account") }}
+      </button>
+    </form>
+
+        <!-- Demo accounts (click one to fill the form) -->
+    <div class="demo-box">
+      <strong>Demo accounts</strong>
+      <p class="demo-hint">Click an account to fill the login form.</p>
+      <button type="button" class="demo-btn" ng-click="vm.fillDemo('admin@labtrack.edu', 'Admin@123')">
+        <span class="role-badge">Admin</span> admin@labtrack.edu / Admin@123
+      </button>
+      <button type="button" class="demo-btn" ng-click="vm.fillDemo('assistant@labtrack.edu', 'Assist@123')">
+        <span class="role-badge">Assistant</span> assistant@labtrack.edu / Assist@123
+      </button>
+      <button type="button" class="demo-btn" ng-click="vm.fillDemo('student@labtrack.edu', 'Student@123')">
+        <span class="role-badge">Student</span> student@labtrack.edu / Student@123
+      </button>
+    </div>
+
+   
+
+    <a href="/" class="auth-back">&larr; Back to homepage</a>
+  </main>
+
+  <script src="js/vendor/angular.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/services/authService.js"></script>
+  <script src="js/controllers/loginController.js"></script>
+</body>
+</html>
