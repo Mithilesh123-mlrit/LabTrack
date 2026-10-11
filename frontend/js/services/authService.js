@@ -10,7 +10,7 @@ angular.module("labtrackApp").factory("AuthService", [
     // Asks the server who is logged in (uses the session cookie)
     service.loadUser = function () {
       return $http
-        .get("/api/auth/me")
+        .get("https://labtrack-3r44.onrender.com/api/auth/me")
         .then(function (response) {
           service.user = response.data;
         })
@@ -24,7 +24,7 @@ angular.module("labtrackApp").factory("AuthService", [
 
     service.login = function (email, password) {
       return $http
-        .post("/api/auth/login", { email: email, password: password })
+        .post("https://labtrack-3r44.onrender.com/api/auth/login", { email: email, password: password })
         .then(function (response) {
           service.user = response.data;
           return response.data;
@@ -32,7 +32,7 @@ angular.module("labtrackApp").factory("AuthService", [
     };
 
     service.register = function (data) {
-      return $http.post("/api/auth/register", {
+      return $http.post("https://labtrack-3r44.onrender.com/api/auth/register", {
         name: data.name,
         email: data.email,
         password: data.password,
@@ -40,7 +40,7 @@ angular.module("labtrackApp").factory("AuthService", [
     };
 
     service.logout = function () {
-      return $http.post("/api/auth/logout").then(function () {
+      return $http.post("https://labtrack-3r44.onrender.com/api/auth/logout").then(function () {
         service.user = null;
       });
     };

@@ -2,7 +2,7 @@
 angular.module("labtrackApp").factory("EquipmentService", [
   "$http",
   function ($http) {
-    var baseUrl = "/api/equipment";
+    var baseUrl = "https://labtrack-3r44.onrender.com/api/equipment";
 
     return {
       getAll: function () {

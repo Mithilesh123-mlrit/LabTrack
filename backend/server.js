@@ -37,7 +37,12 @@ app.use(
 );
 
 // 3. Allow cross-origin requests
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://labtrack-frontend-eta.vercel.app",
+    credentials: true,
+  })
+);
 
 // 4. Read JSON sent in request bodies
 app.use(express.json());
@@ -54,11 +59,11 @@ app.use(
     resave: false,
     saveUninitialized: false, // only create a session when we put something in it
     cookie: {
-      httpOnly: true, // JavaScript in the page cannot read the cookie
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production", // HTTPS only in production
-      maxAge: 1000 * 60 * 60 * 2, // 2 hours
-    },
+  httpOnly: true,
+  sameSite: "none",
+  secure: true,
+  maxAge: 1000 * 60 * 60 * 2,
+},
   })
 );
 

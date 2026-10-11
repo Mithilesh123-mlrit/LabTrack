@@ -10,7 +10,7 @@ angular.module("labtrackApp").factory("StatsService", [
 
     service.load = function () {
       return $http
-        .get("/api/stats")
+        .get("https://labtrack-3r44.onrender.com/api/stats")
         .then(function (response) {
           service.data = response.data;
           service.loaded = true;
